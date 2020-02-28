@@ -14,6 +14,27 @@ export default class SpFxHttpClientDemo extends React.Component<
   //   this.props.onGetListItems();
   // };
 
+  private onAddListItemClicked = (
+    event: React.MouseEvent<HTMLAnchorElement>
+  ): void => {
+    event.preventDefault();
+    this.props.onAddListItem();
+  };
+
+  private onUpdateListItemClicked = (
+    event: React.MouseEvent<HTMLAnchorElement>
+  ): void => {
+    event.preventDefault();
+    this.props.onUpdateListItem();
+  };
+
+  private onDeleteListItemClicked = (
+    event: React.MouseEvent<HTMLAnchorElement>
+  ): void => {
+    event.preventDefault();
+    this.props.onDeleteListItem();
+  };
+
   public render(): React.ReactElement<ISpFxHttpClientDemoProps> {
     return (
       <div className={styles.spFxHttpClientDemo}>
@@ -28,6 +49,27 @@ export default class SpFxHttpClientDemo extends React.Component<
               >
                 <span className={styles.label}>Get Todo Items</span>
               </a> */}
+              <a
+                href="#"
+                className={styles.button}
+                onClick={this.onAddListItemClicked}
+              >
+                <span className={styles.label}>Add Todo Item</span>
+              </a>
+              <a
+                href="#"
+                className={styles.button}
+                onClick={this.onUpdateListItemClicked}
+              >
+                <span className={styles.label}>Update Todo Item</span>
+              </a>
+              <a
+                href="#"
+                className={styles.button}
+                onClick={this.onDeleteListItemClicked}
+              >
+                <span className={styles.label}>Delete Todo Item</span>
+              </a>
             </div>
           </div>
 

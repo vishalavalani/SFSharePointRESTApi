@@ -23,7 +23,10 @@ export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
       SpFxHttpClientDemo,
       {
         spListItems: this._todoItems,
-        onGetListItems: this._onGetListItems
+        onGetListItems: this._onGetListItems,
+        onAddListItem: this._onAddListItem,
+        onUpdateListItem: this._onUpdateListItem,
+        onDeleteListItem: this._onDeleteListItem
       }
     );
 
@@ -38,6 +41,101 @@ export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
     });
   };
 
+  private _onAddListItem = (): void => {
+    this._addListItem().then(() => {
+      this._getListItems().then(response => {
+        this._todoItems = response;
+        this.render();
+      });
+    });
+  };
+
+  private _onUpdateListItem = (): void => {
+    this._updateListItem().then(() => {
+      this._getListItems().then(response => {
+        this._todoItems = response;
+        this.render();
+      });
+    });
+  };
+
+  private _onDeleteListItem = (): void => {
+    this._deleteListItem().then(() => {
+      this._getListItems().then(response => {
+        this._todoItems = response;
+        this.render();
+      });
+    });
+  };
+
+  private _getItemEntityType(): Promise<string> {
+    return this.context.spHttpClient
+      .get(
+        this.context.pageContext.web.absoluteUrl +
+          `/_api/web/lists/getbytitle('Todo')?$select=ListItemEntityTypeFullName`,
+        SPHttpClient.configurations.v1
+      )
+      .then(response => {
+        return response.json();
+      })
+      .then(jsonResponse => {
+        console.log("_getItemEntityType jsonResponse", jsonResponse);
+        console.log(
+          "_getItemEntityType jsonResponse ListItemEntityTypeFullName",
+          jsonResponse.ListItemEntityTypeFullName
+        );
+        return jsonResponse.ListItemEntityTypeFullName;
+      }) as Promise<string>;
+  }
+
+  private _addListItem(): Promise<SPHttpClientResponse> {
+    return this._getItemEntityType().then(spEntityType => {
+      const request: any = {};
+      request.body = JSON.stringify({
+        Title: new Date().toUTCString(),
+        "@odata.type": spEntityType
+      });
+
+      return this.context.spHttpClient.post(
+        this.context.pageContext.web.absoluteUrl +
+          `/_api/web/lists/getbytitle('Todo')/items`,
+        SPHttpClient.configurations.v1,
+        request
+      );
+    });
+  }
+
+  private _deleteListItem(): Promise<SPHttpClientResponse> {
+    // get the last item
+    return this.context.spHttpClient
+      .get(
+        this.context.pageContext.web.absoluteUrl +
+          `/_api/web/lists/getbytitle('Todo')/items?$select=Id,Title&$orderby=ID desc&$top=1`,
+        SPHttpClient.configurations.v1
+      )
+      .then(response => {
+        return response.json();
+      })
+      .then(jsonResponse => {
+        return jsonResponse.value[0];
+      })
+      .then((listItem: ITodoListItem) => {
+        const request: any = {};
+        request.headers = {
+          "X-HTTP-Method": "DELETE",
+          "IF-MATCH": "*"
+        };
+        request.body = JSON.stringify(listItem);
+
+        return this.context.spHttpClient.post(
+          this.context.pageContext.web.absoluteUrl +
+            `/_api/web/lists/getbytitle('Todo')/items(${listItem.Id})`,
+          SPHttpClient.configurations.v1,
+          request
+        );
+      });
+  }
+
   private _getListItems(): Promise<ITodoListItem[]> {
     return this.context.spHttpClient
       .get(
@@ -51,6 +149,40 @@ export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
       .then(jsonResponse => {
         return jsonResponse.value;
       }) as Promise<ITodoListItem[]>;
+  }
+
+  private _updateListItem(): Promise<SPHttpClientResponse> {
+    // get the first item
+    return this.context.spHttpClient
+      .get(
+        this.context.pageContext.web.absoluteUrl +
+          `/_api/web/lists/getbytitle('Todo')/items?$select=Id,Title&$filter=Title eq 'Bring Coffee'`,
+        SPHttpClient.configurations.v1
+      )
+      .then(response => {
+        return response.json();
+      })
+      .then(jsonResponse => {
+        return jsonResponse.value[0];
+      })
+      .then((listItem: ITodoListItem) => {
+        // update item
+        listItem.Title = "Bring Coffee and tea";
+        // save it
+        const request: any = {};
+        request.headers = {
+          "X-HTTP-Method": "MERGE",
+          "IF-MATCH": (listItem as any)["@odata.etag"]
+        };
+        request.body = JSON.stringify(listItem);
+
+        return this.context.spHttpClient.post(
+          this.context.pageContext.web.absoluteUrl +
+            `/_api/web/lists/getbytitle('Todo')/items(${listItem.Id})`,
+          SPHttpClient.configurations.v1,
+          request
+        );
+      });
   }
 
   protected onDispose(): void {

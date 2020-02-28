@@ -156,7 +156,7 @@ export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
     return this.context.spHttpClient
       .get(
         this.context.pageContext.web.absoluteUrl +
-          `/_api/web/lists/getbytitle('Todo')/items?$select=Id,Title&$filter=Title eq 'Bring Coffee'`,
+          `/_api/web/lists/getbytitle('Todo')/items?$select=Id,Title&$filter=Id eq 1`,
         SPHttpClient.configurations.v1
       )
       .then(response => {
@@ -167,7 +167,7 @@ export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
       })
       .then((listItem: ITodoListItem) => {
         // update item
-        listItem.Title = "Bring Coffee and tea";
+        listItem.Title = new Date().toUTCString();
         // save it
         const request: any = {};
         request.headers = {

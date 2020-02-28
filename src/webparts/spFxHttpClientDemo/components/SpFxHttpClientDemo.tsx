@@ -7,13 +7,12 @@ export default class SpFxHttpClientDemo extends React.Component<
   ISpFxHttpClientDemoProps,
   {}
 > {
-  private onGetListItemsClicked = (
-    event: React.MouseEvent<HTMLAnchorElement>
-  ): void => {
-    event.preventDefault();
-
-    this.props.onGetListItems();
-  };
+  // private onGetListItemsClicked = (
+  //   event: React.MouseEvent<HTMLAnchorElement>
+  // ): void => {
+  //   event.preventDefault();
+  //   this.props.onGetListItems();
+  // };
 
   public render(): React.ReactElement<ISpFxHttpClientDemoProps> {
     return (
@@ -21,14 +20,14 @@ export default class SpFxHttpClientDemo extends React.Component<
         <div className={styles.container}>
           <div className={styles.row}>
             <div className={styles.column}>
-              <p className={styles.title}>SharePoint Content!</p>
-              <a
+              <p className={styles.title}>List of Todo Items</p>
+              {/* <a
                 href="#"
                 className={styles.button}
                 onClick={this.onGetListItemsClicked}
               >
                 <span className={styles.label}>Get Todo Items</span>
-              </a>
+              </a> */}
             </div>
           </div>
 

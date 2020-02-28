@@ -10,19 +10,47 @@ import { BaseClientSideWebPart } from "@microsoft/sp-webpart-base";
 import * as strings from "SpFxHttpClientDemoWebPartStrings";
 import SpFxHttpClientDemo from "./components/SpFxHttpClientDemo";
 import { ISpFxHttpClientDemoProps } from "./components/ISpFxHttpClientDemoProps";
+import { SPHttpClient, SPHttpClientResponse } from "@microsoft/sp-http";
+import { ITodoListItem } from "../../models";
 
 export default class SpFxHttpClientDemoWebPart extends BaseClientSideWebPart<
-  ISpFxHttpClientDemoWebPartProps
+  any
 > {
+  private _todoItems: ITodoListItem[] = [];
+
   public render(): void {
     const element: React.ReactElement<ISpFxHttpClientDemoProps> = React.createElement(
       SpFxHttpClientDemo,
       {
-        description: this.properties.description
+        spListItems: this._todoItems,
+        onGetListItems: this._onGetListItems
       }
     );
 
     ReactDom.render(element, this.domElement);
+    this._onGetListItems();
+  }
+
+  private _onGetListItems = (): void => {
+    this._getListItems().then(response => {
+      this._todoItems = response;
+      this.render();
+    });
+  };
+
+  private _getListItems(): Promise<ITodoListItem[]> {
+    return this.context.spHttpClient
+      .get(
+        this.context.pageContext.web.absoluteUrl +
+          `/_api/web/lists/getbytitle('Todo')/items?$select=Id,Title`,
+        SPHttpClient.configurations.v1
+      )
+      .then(response => {
+        return response.json();
+      })
+      .then(jsonResponse => {
+        return jsonResponse.value;
+      }) as Promise<ITodoListItem[]>;
   }
 
   protected onDispose(): void {
